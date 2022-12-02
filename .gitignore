@@ -1,0 +1,7 @@
+main
+build/
+bin/
+**/*.o
+**/*.exe
+**/*.elf
+**/__pycache__

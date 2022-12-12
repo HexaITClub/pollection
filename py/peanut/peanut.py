@@ -1,68 +1,8 @@
 #!/usr/bin/env python3
 
 import ppm
-import enum
-import image
-
-class LineDrawer:
-    class AlgoType(enum.Enum):
-        NAIVE = enum.auto()
-        DDA = enum.auto()
-        BRESENHMAN = enum.auto()
-
-    @staticmethod
-    def naive_line_drawing_algorithm(x1, x2, y1, y2):
-        dx = x2 - x1
-        dy = y2 - y1
-        for x in range(x1, x2, 1):
-            y = y1 + dy * (x - x1) / dx
-            yield (x, y)
-
-
-    @staticmethod
-    def digital_differential_analyzer(x1, y1, x2, y2):
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
-        if dx >= dy:
-            step = dx
-        else:
-            step = dy
-
-        dx /= step
-        dy /= step
-        x = x1
-        y = y1
-        i = 1
-        while i < step:
-            yield (x, y)
-            x += dx
-            y += dy
-            i += 1
-
-
-    @staticmethod
-    def bresenhman_algorithm(x1, y1, x2, y2):
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
-
-        x = x1
-        y = y1
-        yield (x, y)
-
-        incrX = 2 * dy
-        incrY = 2 * (dy - dx)
-        pk = (2 * dy) - dx
-
-        while x < x2:
-            if pk < 0:
-                x += 1
-                pk += incrX
-            else:
-                x += 1
-                y += 1
-                pk += incrY
-            yield (x, y)
-
+from line import LineDrawer
+from shape import Circle2D, Line2D, Shape2D
 
 class PeanutCanvas:
     line_algo_type = LineDrawer.AlgoType.DDA
@@ -101,44 +41,34 @@ class PeanutCanvas:
 
     # mid point circle drawing algorithm
     def draw_circle(self, xc, yc, radius):
-        x = radius
-        y = 0
-        error = 0
-        while x >= y:
-            pts = self.__gen_8_way_symmetry(x, y)
-            for (px, py) in pts:
-                self.pixels[(yc + py) * self.width + (xc + px)] = self.color
-            if error <= 0:
-                y += 1
-                error += (2 * y) + 1
-            elif error > 0:
-                x -= 1
-                error -= (2 * x) + 1
+        circle = Circle2D(xc, yc, radius)
+        for point in circle.get_drawable():
+            x = point.x
+            y = point.y
+            self.pixels[y * self.width + x] = self.color
+
+    
+    def translate_shape(self, shape: Shape2D, tx, ty):
+        if isinstance(shape, Circle2D):
+            shape.centerx += tx
+            shape.centery += ty
+            return
+        elif isinstance(shape, Line2D):
+            shape.x1 += tx
+            shape.x2 += tx
+            shape.y1 += ty
+            shape.y2 += ty
+            return
 
 
     def draw_line(self, x1, y1, x2, y2):
-        if PeanutCanvas.line_algo_type == LineDrawer.AlgoType.NAIVE:
-            line_pixel_coord_generator = LineDrawer.naive_line_drawing_algorithm(x1, y1, x2, y2)
-        elif PeanutCanvas.line_algo_type == LineDrawer.AlgoType.DDA:
-            line_pixel_coord_generator = LineDrawer.digital_differential_analyzer(x1, y1, x2, y2)
-        elif PeanutCanvas.line_algo_type == LineDrawer.AlgoType.BRESENHMAN:
-            self.__handle_bresenhman_line_algo(x1, y1, x2, y2)
-            return
-
-        for pixel_coord in line_pixel_coord_generator:
+        line = Line2D(x1, y1, x2, y2)
+        for pixel_coord in line.get_drawable():
             x = pixel_coord[0]
             y = pixel_coord[1]
             self.pixels[int(y) * self.width + int(x)] = self.color
 
 
-    def __handle_bresenhman_line_algo(self, x1, y1, x2, y2):
-        line_pixel_coord_generator = LineDrawer.bresenhman_algorithm(x1, y1, x2, y2)
-        for pixel_coord in line_pixel_coord_generator:
-            x = pixel_coord[0]
-            y = pixel_coord[1]
-            self.pixels[y * self.width + x] = self.color
-
-    
     def draw_polygon(self, xs, ys):
         length = len(xs)
         if length < 2:
@@ -232,7 +162,4 @@ if __name__ == "__main__":
     H = 400
     
     canvas = PeanutCanvas(W, H)
-    canvas.fill(0xFFFFFF)
-    canvas.color = 0x000000
-    canvas.draw_ellipse(200, 200, 50, 60)
     ppm.save_as_ppm("out.ppm", canvas(), W, H)

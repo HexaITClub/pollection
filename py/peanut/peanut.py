@@ -44,25 +44,23 @@ class LineDrawer:
     def bresenhman_algorithm(x1, y1, x2, y2):
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
-        pk = (2 * dy) - dx
-        if x2 > x1:
-            x = x1
-            y = y1
-            xend = x2
-        else:
-            x = x2
-            y = y2
-            xend = x1
 
+        x = x1
+        y = y1
         yield (x, y)
 
-        while x < xend:
-            x += 1
+        incrX = 2 * dy
+        incrY = 2 * (dy - dx)
+        pk = (2 * dy) - dx
+
+        while x < x2:
             if pk < 0:
-                pk += (2 * dy)
+                x += 1
+                pk += incrX
             else:
+                x += 1
                 y += 1
-                pk += (2 * dy) - (2 * dx)
+                pk += incrY
             yield (x, y)
 
 
@@ -106,17 +104,10 @@ class PeanutCanvas:
         x = radius
         y = 0
         error = 0
-
-        color = self.color
         while x >= y:
-            self.pixels[(yc + y) * self.width + (xc + x)] = color
-            self.pixels[(yc + x) * self.width + (xc + y)] = color
-            self.pixels[(yc + x) * self.width - (xc + y)] = color
-            self.pixels[(yc + y) * self.width - (xc + x)] = color
-            self.pixels[(yc - y) * self.width - (xc + x)] = color
-            self.pixels[(yc - x) * self.width - (xc + y)] = color
-            self.pixels[(yc - x) * self.width + (xc + y)] = color
-            self.pixels[(yc - y) * self.width + (xc + x)] = color
+            pts = self.__gen_8_way_symmetry(x, y)
+            for (px, py) in pts:
+                self.pixels[(yc + py) * self.width + (xc + px)] = self.color
             if error <= 0:
                 y += 1
                 error += (2 * y) + 1
@@ -147,6 +138,78 @@ class PeanutCanvas:
             y = pixel_coord[1]
             self.pixels[y * self.width + x] = self.color
 
+    
+    def draw_polygon(self, xs, ys):
+        length = len(xs)
+        if length < 2:
+            return
+
+        i = 0
+        while i < (length - 1):
+            x1 = xs[i]
+            y1 = ys[i]
+            x2 = xs[i + 1]
+            y2 = ys[i + 1]
+            self.draw_line(x1, y1, x2, y2)
+            i += 1
+
+        x1 = xs[0]
+        y1 = ys[0]
+        x2 = xs[length - 1]
+        y2 = ys[length - 1]
+        self.draw_line(x1, y1, x2, y2)
+
+
+    def draw_ellipse(self, cx, cy, a, b):
+        x = 0
+        y = b
+        pts = self.__gen_4_way_symmetry(x, y)
+        for (px, py) in pts:
+            self.pixels[(cy + py) * self.width + (cx + px)] = self.color
+
+        d1 = (b*b) - (a*a*b) + (0.25*a*a)
+        while ((a*a)*(y-0.5)) > ((b*b)*(x+1)):
+            if d1 < 0:
+                d1 += (b*b) * (2*x + 3)
+            else:
+                d1 += ((b*b)*(2*x+3)) + ((a*a)*(-2*y+2))
+                y -= 1
+            x += 1
+
+            pts = self.__gen_4_way_symmetry(x, y)
+            for (px, py) in pts:
+                self.pixels[(cy + py) * self.width + (cx + px)] = self.color
+
+        d2 = ((b*b)*(x + 0.5)*(x + 0.5)) + ((a*a)*(y - 1)*(y - 1) - (a*a)*(b*a))
+        while y > 0:
+            if d2 < 0:
+                d2 += ((b*b)*(2*x + 2)) + ((a*a)*(-2*y+3))
+                x += 1
+            else:
+                d2 += (a*a)*(-2*y + 3)
+            y -= 1
+
+            pts = self.__gen_4_way_symmetry(x, y)
+            for (px, py) in pts:
+                self.pixels[(cy + py) * self.width + (cx + px)] = self.color
+
+
+    def __gen_4_way_symmetry(self, x, y):
+        return [
+                (x, y),
+                (-x, y),
+                (x, -y),
+                (-x, -y)
+            ]
+
+    def __gen_8_way_symmetry(self, x, y):
+        return self.__gen_4_way_symmetry(x, y) + [
+                    (y, -x),
+                    (y, x),
+                    (-y, x),
+                    (-y, -x)
+                ]
+
 
     @property
     def color(self):
@@ -169,7 +232,7 @@ if __name__ == "__main__":
     H = 400
     
     canvas = PeanutCanvas(W, H)
-    canvas.color = 0xFFFFFF
-    canvas.init_line_algorithm(LineDrawer.AlgoType.BRESENHMAN)
-    canvas.draw_line(0, 0, 300, 40)
-    ppm.save_as_ppm("output.ppm", canvas(), W, H)
+    canvas.fill(0xFFFFFF)
+    canvas.color = 0x000000
+    canvas.draw_ellipse(200, 200, 50, 60)
+    ppm.save_as_ppm("out.ppm", canvas(), W, H)

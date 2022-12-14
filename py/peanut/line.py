@@ -1,4 +1,5 @@
 import enum
+from point import Point2D
 
 class LineDrawer:
     class AlgoType(enum.Enum):
@@ -10,9 +11,11 @@ class LineDrawer:
     def naive_line_drawing_algorithm(x1, x2, y1, y2):
         dx = x2 - x1
         dy = y2 - y1
+        pts = []
         for x in range(x1, x2, 1):
             y = y1 + dy * (x - x1) / dx
-            yield (x, y)
+            pts.append(Point2D(x, y))
+        return pts
 
 
     @staticmethod
@@ -29,11 +32,13 @@ class LineDrawer:
         x = x1
         y = y1
         i = 1
+        pts = []
         while i < step:
-            yield (x, y)
+            pts.append(Point2D(x, y))
             x += dx
             y += dy
             i += 1
+        return pts
 
 
     @staticmethod
@@ -43,7 +48,8 @@ class LineDrawer:
 
         x = x1
         y = y1
-        yield (x, y)
+        pts = []
+        pts.append(Point2D(x, y))
 
         incrX = 2 * dy
         incrY = 2 * (dy - dx)
@@ -57,4 +63,5 @@ class LineDrawer:
                 x += 1
                 y += 1
                 pk += incrY
-            yield (x, y)
+            pts.append(Point2D(x, y))
+        return pts

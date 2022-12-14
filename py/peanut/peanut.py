@@ -3,6 +3,8 @@
 import ppm
 from line import LineDrawer
 from shape import Circle2D, Line2D, Shape2D
+from transform2d import AffineTransform
+import point
 
 class PeanutCanvas:
     line_algo_type = LineDrawer.AlgoType.DDA
@@ -12,6 +14,8 @@ class PeanutCanvas:
         self.height = height
         self.pixels = pixels if pixels else [0 for _ in range(height * width)]
         self._color = 0x0
+        self.shapes_info = []
+        self.transform = None
 
 
     @classmethod
@@ -39,35 +43,41 @@ class PeanutCanvas:
         self.fill_rect(0, 0, self.width, self.height)
 
 
-    # mid point circle drawing algorithm
     def draw_circle(self, xc, yc, radius):
         circle = Circle2D(xc, yc, radius)
-        for point in circle.get_drawable():
-            x = point.x
-            y = point.y
-            self.pixels[y * self.width + x] = self.color
-
-    
-    def translate_shape(self, shape: Shape2D, tx, ty):
-        if isinstance(shape, Circle2D):
-            shape.centerx += tx
-            shape.centery += ty
-            return
-        elif isinstance(shape, Line2D):
-            shape.x1 += tx
-            shape.x2 += tx
-            shape.y1 += ty
-            shape.y2 += ty
-            return
-
+        self.shapes_info.append({"color": self.color, "shape": circle})
 
     def draw_line(self, x1, y1, x2, y2):
         line = Line2D(x1, y1, x2, y2)
-        for pixel_coord in line.get_drawable():
-            x = pixel_coord[0]
-            y = pixel_coord[1]
-            self.pixels[int(y) * self.width + int(x)] = self.color
+        self.shapes_info.append({"color": self.color, "shape": line})
+        
+    def draw(self, shape: Shape2D):
+        self.shapes_info.append({"color": self.color, "shape": shape})
+    
+    def __draw_all(self):
+        for si in self.shapes_info:
+            shape: Shape2D = si.get("shape")
+            color: int = si.get("color")
+            if self.transform:
+                if isinstance(shape, Line2D):
+                    start = point.Point2D(shape.x1, shape.y1)
+                    end = point.Point2D(shape.x2, shape.y2)
+                    self.transform.transform([start, end])
+                    shape.x1 = start.x
+                    shape.y1 = start.y
+                    shape.x2 = end.x
+                    shape.y2 = end.y
+                elif isinstance(shape, Circle2D):
+                    center = point.Point2D(shape.centerx, shape.centery)
+                    self.transform.transform([center])
+                    shape.centerx = center.x
+                    shape.centery = center.y
 
+            points = shape.get_drawable()
+            for p in points:
+                x = p.x
+                y = p.y
+                self.pixels[int(y) * self.width + int(x)] = color
 
     def draw_polygon(self, xs, ys):
         length = len(xs)
@@ -123,6 +133,10 @@ class PeanutCanvas:
             for (px, py) in pts:
                 self.pixels[(cy + py) * self.width + (cx + px)] = self.color
 
+    
+    def set_transform(self, transform: AffineTransform):
+        self.transform = transform
+
 
     def __gen_4_way_symmetry(self, x, y):
         return [
@@ -152,14 +166,21 @@ class PeanutCanvas:
 
 
     def __call__(self):
+        self.__draw_all()
         return self.pixels
 
 
 if __name__ == "__main__":
-    ROWS = 8
-    COLS = 8
     W = 400
     H = 400
     
     canvas = PeanutCanvas(W, H)
+    canvas.fill(0xFFFFFF)
+    canvas.color = 0xFF0000
+    t = AffineTransform()
+    t.concatenate(AffineTransform.get_scaling(3, 1))    
+    canvas.set_transform(t)
+    canvas.draw_line(0, 0, 100, 100)
+    canvas.color = 0x00FF00
+    canvas.draw_circle(200, 200, 50)
     ppm.save_as_ppm("out.ppm", canvas(), W, H)

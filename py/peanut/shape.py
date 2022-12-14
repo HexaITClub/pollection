@@ -1,9 +1,5 @@
 from line import LineDrawer
-
-class Point2D():
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+from point import Point2D
 
 class Shape2D:
     def __init__(self, points):
@@ -36,16 +32,18 @@ class Circle2D(Shape2D):
         x = self.radius
         y = 0
         error = 0
+        points = []
         while x >= y:
             pts = self.__gen_8_way_symmetry(x, y)
             for (px, py) in pts:
-                yield Point2D((self.centerx + px), (self.centery + py))
+                points.append(Point2D((self.centerx + px), (self.centery + py)))
             if error <= 0:
                 y += 1
                 error += (2 * y) + 1
             elif error > 0:
                 x -= 1
                 error -= (2 * x) + 1
+        return points
     
     def __gen_8_way_symmetry(self, x, y):
         return self.__gen_4_way_symmetry(x, y) + [

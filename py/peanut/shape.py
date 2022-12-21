@@ -5,7 +5,7 @@ class Shape2D:
     def __init__(self, points):
         self.__points = points
 
-    def get_drawable(): pass
+    def get_drawable(self): pass
 
     @classmethod
     def from_points(cls, points):
@@ -20,7 +20,7 @@ class Line2D(Shape2D):
         self.y2 = y2
 
     def get_drawable(self):
-        return LineDrawer.digital_differential_analyzer(self.x1, self.y1, self.x2, self.y2)
+        return LineDrawer.naive_line_drawing_algorithm(self.x1, self.y1, self.x2, self.y2)
 
 class Circle2D(Shape2D):
     def __init__(self, cx, cy, radius):
@@ -60,3 +60,30 @@ class Circle2D(Shape2D):
                 (x, -y),
                 (-x, -y)
             ]
+
+class Path2D(Shape2D):
+    def __init__(self):
+        self.__currentx = 0
+        self.__currenty = 0
+        self._shapes = []
+
+    def move_to(self, x, y):
+        self.__currentx = x
+        self.__currenty = y
+
+    def line_to(self, x, y):
+        self._shapes.append(Line2D(self.__currentx, self.__currenty, x, y))
+        self.__currentx = x
+        self.__currenty = y
+
+    def curve_to(self, x1, y1, x2, y2, x3, y3):
+        raise Exception("Not implemented!")
+
+    def transform(self, tf):
+        raise Exception("Not implemented!")
+
+    def get_drawable(self):
+        draws = []
+        for sh in self._shapes:
+            draws += sh.get_drawable()
+        return draws

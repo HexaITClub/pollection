@@ -2,7 +2,7 @@
 
 import ppm
 from line import LineDrawer
-from shape import Circle2D, Line2D, Shape2D
+from shape import Circle2D, Line2D, Shape2D, Path2D
 from transform2d import AffineTransform
 import point
 
@@ -58,26 +58,35 @@ class PeanutCanvas:
         for si in self.shapes_info:
             shape: Shape2D = si.get("shape")
             color: int = si.get("color")
-            if self.transform:
-                if isinstance(shape, Line2D):
-                    start = point.Point2D(shape.x1, shape.y1)
-                    end = point.Point2D(shape.x2, shape.y2)
-                    self.transform.transform([start, end])
-                    shape.x1 = start.x
-                    shape.y1 = start.y
-                    shape.x2 = end.x
-                    shape.y2 = end.y
-                elif isinstance(shape, Circle2D):
-                    center = point.Point2D(shape.centerx, shape.centery)
-                    self.transform.transform([center])
-                    shape.centerx = center.x
-                    shape.centery = center.y
+            self.__transform_and_draw(shape, color)
+    
+    def __transform_and_draw(self, shape, color):
+        if self.transform:
+            if isinstance(shape, Line2D):
+                start = point.Point2D(shape.x1, shape.y1)
+                end = point.Point2D(shape.x2, shape.y2)
+                self.transform.transform([start, end])
+                shape.x1 = start.x
+                shape.y1 = start.y
+                shape.x2 = end.x
+                shape.y2 = end.y
+            elif isinstance(shape, Circle2D):
+                center = point.Point2D(shape.centerx, shape.centery)
+                self.transform.transform([center])
+                shape.centerx = center.x
+                shape.centery = center.y
+        
+        if isinstance(shape, Path2D):
+            for path_obj in shape._shapes:
+                self.__transform_and_draw(path_obj, color)
+            return
 
-            points = shape.get_drawable()
-            for p in points:
-                x = p.x
-                y = p.y
-                self.pixels[int(y) * self.width + int(x)] = color
+        points = shape.get_drawable()
+        for p in points:
+            x = p.x
+            y = p.y
+            self.pixels[int(y) * self.width + int(x)] = color
+
 
     def draw_polygon(self, xs, ys):
         length = len(xs)
@@ -171,16 +180,13 @@ class PeanutCanvas:
 
 
 if __name__ == "__main__":
-    W = 400
-    H = 400
+    W = 900
+    H = 900
     
     canvas = PeanutCanvas(W, H)
     canvas.fill(0xFFFFFF)
     canvas.color = 0xFF0000
-    t = AffineTransform()
-    t.concatenate(AffineTransform.get_scaling(3, 1))    
-    canvas.set_transform(t)
-    canvas.draw_line(0, 0, 100, 100)
-    canvas.color = 0x00FF00
-    canvas.draw_circle(200, 200, 50)
+    canvas.draw_line(200, 200, 300, 300)
+    canvas.draw_line(300, 300, 100, 300)
+    canvas.draw_line(100, 300, 200, 200)
     ppm.save_as_ppm("out.ppm", canvas(), W, H)

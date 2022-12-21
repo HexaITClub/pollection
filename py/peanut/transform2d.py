@@ -52,6 +52,18 @@ class AffineTransform():
                                             [0, sy, 0],
                                             [0, 0, 1]])
 
+    @staticmethod
+    def get_reflection(rx, ry):
+        return AffineTransform(matrix = [[rx, 0, 0],
+                                            [0, ry, 0],
+                                            [0, 0, 1]])
+
+    @staticmethod
+    def get_shearing(shx, shy):
+        return AffineTransform(matrix = [[shx, 0, 0],
+                                            [0, shy, 0],
+                                            [0, 0, 1]])
+
     @property
     def matrix(self):
         return self.__transformation_matrix

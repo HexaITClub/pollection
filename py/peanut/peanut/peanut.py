@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import ppm
 from line import LineDrawer
 from shape import Circle2D, Line2D, Shape2D, Path2D
 from transform2d import AffineTransform

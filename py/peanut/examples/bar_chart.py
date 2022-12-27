@@ -1,7 +1,10 @@
-from ..peanut import PeanutCanvas
-from .. import ppm
+import sys
+sys.path.append("../")
 
-def gen_bar_chart(data_pts, canvas: PeanutCanvas = PeanutCanvas(1000, 1000), chart_color: int = 0xFFBB00):
+from peanut import ppm
+from peanut import peanut
+
+def gen_bar_chart(data_pts, canvas: peanut.PeanutCanvas = peanut.PeanutCanvas(1000, 1000), chart_color: int = 0xFFBB00):
     if len(data_pts) > 10:
         print("Max data points: 10")
         return
@@ -23,4 +26,4 @@ def gen_bar_chart(data_pts, canvas: PeanutCanvas = PeanutCanvas(1000, 1000), cha
 
 if __name__ == "__main__":
     chart = gen_bar_chart([50, 100, 34, 76, 59, 200, 45])
-    ppm.save_as_ppm("out.ppm", chart(), chart.width, chart.height)
+    ppm.save_as_ppm("../out.ppm", chart(), chart.width, chart.height)

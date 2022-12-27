@@ -20,7 +20,7 @@ class Line2D(Shape2D):
         self.y2 = y2
 
     def get_drawable(self):
-        return LineDrawer.naive_line_drawing_algorithm(self.x1, self.y1, self.x2, self.y2)
+        return LineDrawer.dda2(self.x1, self.y1, self.x2, self.y2)
 
 class Circle2D(Shape2D):
     def __init__(self, cx, cy, radius):

@@ -40,6 +40,26 @@ class LineDrawer:
             i += 1
         return pts
 
+    @staticmethod
+    def dda2(x1, y1, x2, y2):
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+        x = x1
+        y = y1
+
+        if dx > dy:
+            steps = dx
+        else: steps = dy
+
+        xincr = dx / float(steps)
+        yincr = dy / float(steps)
+        pts = []
+        pts.append(Point2D(round(x), round(y)))
+        for _ in range(steps):
+            x += xincr
+            y += yincr
+            pts.append(Point2D(round(x), round(y)))
+        return pts
 
     @staticmethod
     def bresenhman_algorithm(x1, y1, x2, y2):

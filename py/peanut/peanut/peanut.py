@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from line import LineDrawer
-from shape import Circle2D, Line2D, Shape2D, Path2D
-from transform2d import AffineTransform
-import point
+from .line import LineDrawer
+from .shape import Circle2D, Line2D, Shape2D, Path2D
+from .transform2d import AffineTransform
+from . import point
 
 class PeanutCanvas:
     line_algo_type = LineDrawer.AlgoType.DDA

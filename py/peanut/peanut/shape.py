@@ -1,5 +1,5 @@
-from line import LineDrawer
-from point import Point2D
+from .line import LineDrawer
+from .point import Point2D
 
 class Shape2D:
     def __init__(self, points):

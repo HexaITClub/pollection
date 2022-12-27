@@ -1,5 +1,5 @@
 import enum
-from point import Point2D
+from .point import Point2D
 
 class LineDrawer:
     class AlgoType(enum.Enum):

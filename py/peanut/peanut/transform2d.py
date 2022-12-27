@@ -1,6 +1,6 @@
 import typing 
 import math
-import shape
+from . import shape
 
 class AffineTransform():
     def __init__(self, matrix = None):
